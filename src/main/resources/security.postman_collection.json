@@ -1,0 +1,75 @@
+{
+	"info": {
+		"_postman_id": "aa1ce453-6545-4a0a-8624-79331745a9db",
+		"name": "security",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8083/service/decrypt",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "eyJraWQiOiJrZXlpZG9uZSIsImVuYyI6IkEyNTZHQ00iLCJhbGciOiJSU0EtT0FFUC0yNTYifQ.oTfelMyWqV-LF8rNX11ZIMQM4buMIxJ36oFUK_U0JOUptfXtat8k3eWkHRr8In-HZPnDUXxVyx-Fx7EvSfDeqiUfyF4ULP4-Q4J1EmrICcDx9myI9yCE8kRPo_ba-fvwcRzYSbpBFSoDOqMXK97A84rm2cclbb8gHMYWSkFNfm8KOJdLMxWLf2pPua7EKTNUrLEEnTxTB8Au34McE27AllCFeOhfrcsg0sLLGzM2JzH3WMXuNDtkm-RmxLlytH6DJolQ3eQSgi6Eh79LLUZmfpHU5wciOXQ66MW6CUqB9gzE6oKIJoppCR8escpoYwvJX3yXJjLk5ek03LXg0V8FJw.QgZe7DCSjh6RA2R3.e1xHcajGffHlwjmvr7FN_qmvsQ3Kqyrn3FyL6ZjzVbCHiVoDWw.A5WxOZkUEXPQWgjEpu9pDQ"
+				},
+				"url": {
+					"raw": "http://localhost:8083/service/decrypt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"service",
+						"decrypt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/service/encrypt",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "KeyId",
+						"value": "keyidone",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"empId\":\"emp1\",\r\n    \"empName\":\"Empname1\"  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/service/encrypt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"service",
+						"encrypt"
+					],
+					"query": [
+						{
+							"key": "KeyId",
+							"value": "keyidone",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
