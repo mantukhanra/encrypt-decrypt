@@ -39,10 +39,13 @@ import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jwt.SignedJWT;
 
 import lombok.var;
 
@@ -54,6 +57,7 @@ public class MessageController {
 	private final ConcurrentHashMap<String, PrivateKey> pvtKeyMap = new ConcurrentHashMap<>();
 	
 	private final ConcurrentHashMap<String, RSASSASigner> signerMap = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, JWSVerifier> certMap = new ConcurrentHashMap<>();
 
 	@PostMapping("/encrypt")
 	public String getMsg(@RequestBody EmpDetails empDetails,
@@ -225,6 +229,67 @@ public class MessageController {
 		return privateKey;
 	}
 	
-	
+
+	@PostMapping(value="/verify", consumes = MediaType.TEXT_PLAIN_VALUE)
+	public boolean verifySign(@RequestBody String encString,
+			@RequestHeader(value="signature", required=false) String signature) {
+		
+		SignedJWT jwt;
+		String messageDigest = null;
+		String kid=null;
+		try {
+			jwt = SignedJWT.parse(signature);
+			kid = jwt.getHeader().getKeyID();
+			JWSVerifier verifer = getJwsVerifer(kid);
+			if(!jwt.verify(verifer)) {
+				return false;
+			}
+			messageDigest = messageDigester(encString.toString());
+			if(!messageDigest.equalsIgnoreCase(jwt.getPayload().toString())) {
+				return false;
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return true;
+	}
+
+	private JWSVerifier getJwsVerifer(String kid) {
+		certMap.computeIfAbsent(kid, k->getJwsPubKey(kid));
+		return certMap.get(kid);
+	}
+
+	private JWSVerifier getJwsPubKey(String kid) {
+		JWSVerifier jwsVerifier = null;
+		Properties prop = new Properties();
+		prop.put("keyidone", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1CHJZtHRk4uspzRxSygo\r\n" + 
+				"4wAsI83OFHYwt2nyBb+jvIjNLLj+Fqw3cdECxwd1zJhoJskOpu+LlYnHsEjy6W8h\r\n" + 
+				"dAQOARefzwTrqf2ph8oVTg9VEpD38KB21R0k1GoW29sH+9P/wVyBO8OsqJP5mCjp\r\n" + 
+				"tWnR1Y6vHFPjQgSuSAL+YqFChRmRu3cA+bm1ECQilyDk1W2UepaSe/7ebf2vDYal\r\n" + 
+				"b8SItk90QLP/we7S07Q7Xx05bMwwSATKH7+u3TQIP+JRURUjWcJ1F791l/LRpikl\r\n" + 
+				"3qIdbEISyQn4SdNMVHU8mBn/pki7eYLtBuzQ+jdG7THGknlezLiQQsba0cZdjTG+\r\n" + 
+				"NwIDAQAB");
+
+		try {
+			X509EncodedKeySpec encodedKeySpec = new X509EncodedKeySpec(getJwsPubPemObjContent(prop.get(kid).toString()));
+		KeyFactory factory = KeyFactory.getInstance("RSA");
+		RSAPublicKey pubkey = (RSAPublicKey) factory.generatePublic(encodedKeySpec);
+		jwsVerifier = new RSASSAVerifier(pubkey,Collections.singleton("iat"));
+		}catch(Exception e) {
+			
+		}
+		
+		return jwsVerifier;
+	}
+
+	private byte[] getJwsPubPemObjContent(String key) {
+		ByteArrayInputStream in = new ByteArrayInputStream(org.apache.commons.codec.binary.Base64.decodeBase64(
+				key.getBytes()));
+
+		return in.readAllBytes();
+	}
+
 
 }
